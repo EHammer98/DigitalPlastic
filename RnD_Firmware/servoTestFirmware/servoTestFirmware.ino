@@ -31,8 +31,10 @@ struct setpoint_servowaarde {
 //FUNCTION PROTOTYPS
 void stuur_servo_aan (struct setpoint_servowaarde var);
 String serialInput();
+
 //VARIABLES
 String incomingByte; // for incoming serial data
+String serialInputReturn;
 
 void setup() {
   Serial.begin(9600);
@@ -43,27 +45,22 @@ void setup() {
 }
 
 void loop() {
-       String serialInputReturn;
   // send data only when you receive data:
   if (Serial.available() > 0) {
-
-
-  serialInputReturn = serialInput(); // k now contains 6
-
-   
+    serialInputReturn = serialInput(); 
   }
   
-struct setpoint_servowaarde var;                                         //Call struct
-var.s0Pos = serialInputReturn.substring(0,3).toInt();                    //Servo0 position in degress | Max 180
-var.s1Pos = serialInputReturn.substring(3,6).toInt();                    //Servo1 position in degress | Max 180
-var.s2Pos = serialInputReturn.substring(6,9).toInt();                    //Servo2 position in degress | Max 180
-stuur_servo_aan(var);                                                    //Call function with struc variables
+  struct setpoint_servowaarde var;                                         //Call struct
+  var.s0Pos = serialInputReturn.substring(0,3).toInt();                    //Servo0 position in degress | Max 180
+  var.s1Pos = serialInputReturn.substring(3,6).toInt();                    //Servo1 position in degress | Max 180
+  var.s2Pos = serialInputReturn.substring(6,9).toInt();                    //Servo2 position in degress | Max 180
+  stuur_servo_aan(var);                                                    //Call function with struc variables
 
 }
 
 String serialInput(){
   // read the incoming byte:
-    incomingByte = Serial.readString();
+  incomingByte = Serial.readString();
   String result;
   result = incomingByte;
   return result;
@@ -80,5 +77,4 @@ void stuur_servo_aan (struct setpoint_servowaarde var){
   Serial.println(var.s2Pos);         //DEBUG
   servo1.write(var.s2Pos);           //Servo2 aansturen
   delay(1500);                       //DEBUG
-
 }
