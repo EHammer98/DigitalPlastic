@@ -3,9 +3,9 @@
   #Firmware:           Servo Test Firmware                    #
   #Hardware:           Arduino Nano                           #
   #Eerste opzet:       05-02-2020                             #
-  #Auteurs: E. Hammer      N.Benhaddou                        #
-  #Laatst gewijzigd:   10-02-2020                             #
-  #Versie:             0.0.3                                  #
+  #Auteurs: E. Hammer      N.Benhaddou O. Cekem               #
+  #Laatst gewijzigd:   12-02-2020                             #
+  #Versie:             0.0.4                                  #
   #############################################################
 */
 
@@ -34,27 +34,29 @@ void serialInput();
 void demo(void);
 
 //VARIABLES
-String incomingByte; // for incoming serial data
+String incomingByte;        // for incoming serial data
+const int servoMax = 165;   // Max. degrees before the deltarobot destroys it zelf
+const int servoMin = 65;    // Min. degrees before the deltarobot destroys it zelf
+int servoGuard;             //0=OK | 1=Wrong input (not in range)
 
 void setup() {
   Serial.begin(9600);
   servo0.attach(s0Pin);  // attaches servo0 on pin 9 to the servo object
   servo1.attach(s1Pin);  // attaches servo0 on pin 19 to the servo object
-  servo2.attach(s2Pin);  // attaches servo0 on pin 11 to the servo object
-  Serial.println("Voer servo posities in  of '2' voor demo. (Range 65d-165d): s0s1s2");
-  
+  servo2.attach(s2Pin);  // attaches servo0 on pin 11 to the servo object 
+  Serial.println("START POSITIE");
   struct setpoint_servowaarde var; 
-  var.s0Pos = 65;   //165-65 degrees as range
-  var.s1Pos = 65;   //165-65 degrees as range
-  var.s2Pos = 65;   //165-65 degrees as range
+  var.s0Pos = 65;        //165-65 degrees as range
+  var.s1Pos = 65;        //165-65 degrees as range
+  var.s2Pos = 65;        //165-65 degrees as range
   stuur_servo_aan(var);  
-  delay(5000);      //Delay Before the program starts
+  Serial.println("Voer servo posities in  of '2' voor demo. (Range 65d-165d): s0s1s2"); 
 }
 
 void loop() {
   // send data only when you receive data:
   if (Serial.available() > 0) {
-    serialInput();     
+    serialInput();    //Go to function to get input data     
   }
 }
 
@@ -65,14 +67,36 @@ void serialInput(){
   Serial.println("Input: ");                                      //DEBUG
   Serial.println(result);                                         //DEBUG
   if (result.toInt() == 2){
-    Serial.println("Automatische demo wordt gestart");            //DEBUG
-    demo();
+    Serial.println("Automatische demo wordt gestart");            
+    demo();   //Start demo function
   }else{
+
     struct setpoint_servowaarde var;                              //Call struct
-    var.s0Pos = result.substring(0,3).toInt();                    //Servo0 position in degress | Max 180
-    var.s1Pos = result.substring(3,6).toInt();                    //Servo1 position in degress | Max 180
-    var.s2Pos = result.substring(6,9).toInt();                    //Servo2 position in degress | Max 180
-    stuur_servo_aan(var);                                         //Call function with struc variables
+    if (result.substring(0,3).toInt() >= servoMin and result.substring(0,3).toInt() <= servoMax){
+       var.s0Pos = result.substring(0,3).toInt();
+        servoGuard = 0;
+    }else{
+        servoGuard = 1;
+    }
+    if (result.substring(3,6).toInt() >= servoMin and result.substring(3,6).toInt() <= servoMax){
+       var.s1Pos = result.substring(3,6).toInt();
+       servoGuard = 0;
+    }else{
+         servoGuard = 1;
+    }
+    if (result.substring(6,9).toInt() >= servoMin and result.substring(6,9).toInt() <= servoMax){
+       var.s2Pos = result.substring(6,9).toInt(); 
+       servoGuard = 0;
+    }else{
+         servoGuard = 1;
+    }
+
+    if(servoGuard == 1){
+      Serial.println("Voer servo posities in  of '2' voor demo. (Range 65d-165d): s0s1s2");
+    }else{
+     stuur_servo_aan(var);                                         //Call function with struc variables
+     Serial.println("Voer servo posities in  of '2' voor demo. (Range 65d-165d): s0s1s2");
+    }
   }
 }
 
@@ -91,7 +115,6 @@ void stuur_servo_aan (struct setpoint_servowaarde var){
 
 void demo(void){
   struct setpoint_servowaarde var; 
-  Serial.println("demo");//Call struct
   var.s0Pos = 170;                 //Servo0 position in degress | Max 180
   var.s1Pos = 170;                 //Servo1 position in degress | Max 180
   var.s2Pos = 170;                 //Servo2 position in degress | Max 180
@@ -115,6 +138,6 @@ void demo(void){
   var.s0Pos = 165;
   var.s1Pos = 165;
   var.s2Pos = 65;
-  stuur_servo_aan(var);  
-
+  stuur_servo_aan(var); 
+  Serial.println("Voer servo posities in  of '2' voor demo. (Range 65d-165d): s0s1s2"); 
 }
